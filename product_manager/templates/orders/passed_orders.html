@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container my-5">
+    <h1 class="text-center mb-4">Passed Orders for Telegram ID: {{ telegram_id }}</h1>
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Status</th>
+                        <th>Created At</th>
+                        <th>Total Price</th>
+                        <th>Profit</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in passed_orders %}
+                    <tr>
+                        <td>{{ order.id }}</td>
+                        <td>{{ order.get_status_display }}</td>
+                        <td>{{ order.created_at|date:"Y-m-d H:i" }}</td>
+                        <td>${{ order.total_price }}</td>
+                        <td>${{ order.profit }}</td>
+                        <td>
+                            <a href="{% url 'order-detail' order.pk %}" class="btn btn-primary btn-sm">View Details</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">No passed orders found for this Telegram ID.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="text-center mt-3">
+        <a href="{% url 'clients:client-list' %}" class="btn btn-secondary">Back to Client List</a>
+    </div>
+</div>
+{% endblock %}

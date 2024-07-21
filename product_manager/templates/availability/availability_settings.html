@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}Availability Settings{% endblock %}
+
+{% block content %}
+<h2>Availability Settings</h2>
+
+<h3>Time Slots</h3>
+<form method="post" action="{% url 'availability:availability-settings' %}">
+    {% csrf_token %}
+    {{ availability_formset.management_form }}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Day of Week</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Delete</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for form in availability_formset %}
+                {{ form.id }}  <!-- This is important for updating existing instances -->
+                <tr>
+                    <td>{{ form.day_of_week }}</td>
+                    <td>{{ form.start_time }}</td>
+                    <td>{{ form.end_time }}</td>
+                    <td>{{ form.DELETE }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <button type="submit" class="btn btn-primary">Save Time Slots</button>
+</form>
+
+<h3 class="mt-4">Appointment Duration</h3>
+<form method="post" action="{% url 'availability:availability-settings' %}">
+    {% csrf_token %}
+    {{ duration_form.as_p }}
+    <button type="submit" class="btn btn-primary">Save Duration</button>
+</form>
+{% endblock %}

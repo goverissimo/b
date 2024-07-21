@@ -1,0 +1,67 @@
+<!-- templates/inventory/product_list.html -->
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Products{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Products</h1>
+<a href="{% url 'product-create' %}" class="btn btn-primary mb-3">Add New Product</a>
+<!-- Add this just below the "Add New Product" button in product_list.html -->
+<form class="mb-3" method="get">
+    <div class="input-group">
+        <input type="text" class="form-control" placeholder="Search products" name="search" value="{{ search_query }}">
+        <button class="btn btn-outline-secondary" type="submit">Search</button>
+    </div>
+</form>
+<div class="row row-cols-1 row-cols-md-3 g-4">
+    {% for product in products %}
+    <div class="col">
+        <div class="card h-100 shadow-sm">
+            {% if product.image %}
+            <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+            {% endif %}
+            <div class="card-body">
+                <h5 class="card-title">{{ product.name }}</h5>
+                <p class="card-text">{{ product.description|truncatewords:20 }}</p>
+                <p class="card-text">
+                    <strong>Price:</strong> ${{ product.price|floatformat:2 }}<br>
+                    <strong>In Stock:</strong> {{ product.quantity_in_stock }}<br>
+                    <strong>Sold:</strong> {{ product.quantity_sold }}
+                </p>
+            </div>
+            <div class="card-footer bg-transparent border-top-0">
+                <a href="{% url 'product-update' product.pk %}" class="btn btn-outline-primary btn-sm">Edit</a>
+                <a href="{% url 'product-delete' product.pk %}" class="btn btn-outline-danger btn-sm">Delete</a>
+                <a href="{% url 'price-history' product.pk %}" class="btn btn-outline-info btn-sm">Price History</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% if is_paginated %}
+<nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+        </li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+        <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+        {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

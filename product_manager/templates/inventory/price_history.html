@@ -1,0 +1,26 @@
+<!-- templates/inventory/price_history.html -->
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Price History - {{ price_history.0.product.name }}{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Price History - {{ price_history.0.product.name }}</h1>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Price</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for entry in price_history %}
+        <tr>
+            <td>{{ entry.date|date:"Y-m-d H:i" }}</td>
+            <td>${{ entry.price|floatformat:2 }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<a href="{% url 'product-list' %}" class="btn btn-secondary">Back to Products</a>
+{% endblock %}

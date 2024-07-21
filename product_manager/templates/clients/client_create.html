@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <h2 class="mb-0">Create Client</h2>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{% url 'clients:client-create' %}">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label for="telegram_id" class="form-label">Telegram ID:</label>
+              <input type="number" class="form-control" name="telegram_id" id="telegram_id" required>
+            </div>
+            {% crispy form %}
+        
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

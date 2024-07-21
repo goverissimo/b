@@ -1,0 +1,65 @@
+<!-- templates/orders/order_detail.html -->
+{% extends 'base.html' %}
+{% load humanize %}
+{% load order_extras %}
+
+{% block title %}Order #{{ order.telegram_order_id }}{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Order #{{ order.id }}</h1>
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="card-title">Order Details</h5>
+        <p><strong>Status:</strong> {{ order.get_status_display }}</p>
+        <p><strong>Created At:</strong> {{ order.created_at|date:"Y-m-d H:i" }}</p>
+        <p><strong>Updated At:</strong> {{ order.updated_at|date:"Y-m-d H:i" }}</p>
+        <p><strong>Total Price:</strong> ${{ order.total_price|floatformat:2 }}</p>
+        <p><strong>Profit:</strong> ${{ order.profit|floatformat:2 }}</p>
+    </div>
+</div>
+<!-- In templates/orders/order_detail.html, add this after the order details -->
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="card-title">Change Order Status</h5>
+        <form method="post" action="{% url 'change-order-status' order.pk %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="status">New Status:</label>
+                <select name="status" id="status" class="form-control">
+                    <option value="new">New</option>
+                    <option value="pending">Pending</option>
+                    <option value="accepted">Accepted</option>
+                    <option value="dispatched">Dispatched</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary mt-2">Update Status</button>
+        </form>
+    </div>
+</div>
+
+<h2 class="mb-3">Order Items</h2>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Product</th>
+            <th>Quantity</th>
+            <th>Price</th>
+            <th>Subtotal</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in order.items.all %}
+        <tr>
+            <td>{{ item.product.name }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>${{ item.price|floatformat:2 }}</td>
+            <td>${{ item.quantity|multiply:item.price|floatformat:2 }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<a href="{% url 'order-list' %}" class="btn btn-secondary">Back to Orders</a>
+{% endblock %}

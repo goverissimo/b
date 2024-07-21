@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% if form.instance.pk %}Edit{% else %}Add{% endif %} Product{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">{% if form.instance.pk %}Edit{% else %}Add{% endif %} Product</h1>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a href="{% url 'product-list' %}" class="btn btn-secondary">Cancel</a>
+</form>
+{% if form.instance.pk %}
+<div class="mt-4">
+    <h3>Product Statistics</h3>
+    <p>Quantity Sold: {{ form.instance.quantity_sold }}</p>
+    <p>Profit: ${{ form.instance.calculate_profit|floatformat:2 }}</p>
+</div>
+{% endif %}
+{% endblock %}
