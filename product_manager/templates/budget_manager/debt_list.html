@@ -1,0 +1,42 @@
+<!-- budget_manager/templates/budget_manager/debt_list.html -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Debts</h1>
+
+<a href="{% url 'budget_manager:add_debt' %}" class="btn btn-primary mb-3">Add Debt</a>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Amount</th>
+            <th>Order</th>
+            <th>Date Created</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for debt in debts %}
+        <tr>
+            <td>{{ debt.name }}</td>
+            <td>{{ debt.description|truncatewords:10 }}</td>
+            <td>${{ debt.amount }}</td>
+            <td>{% if debt.order %}Order #{{ debt.order.id }}{% else %}N/A{% endif %}</td>
+            <td>{{ debt.date_created }}</td>
+            <td>{% if debt.is_paid %}Paid{% else %}Unpaid{% endif %}</td>
+            <td>
+                <a href="{% url 'budget_manager:edit_debt' debt.id %}" class="btn btn-sm btn-primary">Edit</a>
+                <a href="{% url 'budget_manager:delete_debt' debt.id %}" class="btn btn-sm btn-danger">Delete</a>
+                {% if not debt.is_paid %}
+                <a href="{% url 'budget_manager:mark_debt_paid' debt.id %}" class="btn btn-sm btn-success">Mark as Paid</a>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

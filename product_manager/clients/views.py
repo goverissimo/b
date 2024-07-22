@@ -5,7 +5,7 @@ from .forms import ClientForm
 from .models import Client
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import user_passes_test
-
+from orders.models import Order
 def admin_check(user):
     return user.is_staff or user.is_superuser
 
@@ -16,6 +16,7 @@ def client_list(request):
     """
     clients = Client.objects.all()
     return render(request, 'clients/client_list.html', {'clients': clients})
+
 @user_passes_test(admin_check)
 def client_create(request):
     """
@@ -23,11 +24,8 @@ def client_create(request):
     """
     if request.method == 'POST':
         form = ClientForm(request.POST)
-        telegram_id = request.POST.get('telegram_id')
         if form.is_valid():
-            client = form.save(commit=False)
-            client.telegram_id = telegram_id
-            client.save()
+            client = form.save()
             messages.success(request, 'Client created successfully.')
             return redirect(reverse('clients:client-list'))
         else:
@@ -35,7 +33,6 @@ def client_create(request):
     else:
         form = ClientForm()
     return render(request, 'clients/client_create.html', {'form': form})
-
 
 @user_passes_test(admin_check)
 def client_update(request, pk):
@@ -65,3 +62,13 @@ def client_delete(request, pk):
     client.delete()
     messages.success(request, 'Client deleted successfully.')
     return redirect(reverse('clients:client-list'))
+
+
+@user_passes_test(admin_check)
+def passed_orders(request, client_id):
+    """
+    Display completed orders for a specific client.
+    """
+    client = get_object_or_404(Client, id=client_id)
+    orders = Order.objects.filter(telegram_user_id=client.telegram_id, status='completed') if client.telegram_id else Order.objects.none()
+    return render(request, 'clients/passed_orders.html', {'passed_orders': orders, 'client': client})

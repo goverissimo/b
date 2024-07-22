@@ -1,0 +1,14 @@
+<!-- budget_manager/templates/budget_manager/debt_form.html -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>{% if object %}Edit Debt{% else %}Add Debt{% endif %}</h1>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a href="{% url 'budget_manager:debt_list' %}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

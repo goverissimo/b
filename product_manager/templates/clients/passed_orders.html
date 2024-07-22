@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container my-5">
+    <h1 class="text-center mb-4">Passed Orders for {{ client.get_display_name }}</h1>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="list-group">
+                {% for order in passed_orders %}
+                    <div class="list-group-item">
+                        <h5 class="mb-1">Order #{{ order.id }}</h5>
+                        <p class="mb-1">Date: {{ order.created_at|date:"Y-m-d H:i" }}</p>
+                        <p class="mb-1">Total: ${{ order.total_price }}</p>
+                    </div>
+                {% empty %}
+                    <div class="list-group-item">No passed orders found for this client.</div>
+                {% endfor %}
+            </div>
+            <a href="{% url 'clients:client-list' %}" class="btn btn-primary mt-3">Back to Client List</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

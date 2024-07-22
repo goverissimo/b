@@ -1,18 +1,83 @@
+<!-- budget_manager/templates/budget_manager/budget_overview.html -->
+
 {% extends 'base.html' %}
-
 {% block content %}
-<h1>Budget Overview</h1>
+<h1 class="mb-4">Budget Overview</h1>
 
-<div class="summary">
-    <p>Total Income: ${{ total_income }}</p>
-    <p>Total Expenses: ${{ total_expenses }}</p>
-    <p>Balance: ${{ balance }}</p>
+<div class="financial-overview">
+    <div class="financial-box income-box">
+        <div class="box-title">Total Income</div>
+        <div class="box-amount">${{ total_income }}</div>
+    </div>
+    <div class="financial-box expense-box">
+        <div class="box-title">Total Expenses</div>
+        <div class="box-amount">${{ total_expenses }}</div>
+    </div>
+    <div class="financial-box debt-box">
+        <div class="box-title">Total Debts</div>
+        <div class="box-amount">${{ total_debts }}</div>
+    </div>
+    <div class="financial-box balance-box">
+        <div class="box-title">Current Balance</div>
+        <div class="box-amount">${{ balance }}</div>
+    </div>
+</div>
+<style>
+    .financial-overview {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    .financial-box {
+        flex: 1;
+        min-width: 200px;
+        padding: 20px;
+        border-radius: 10px;
+        color: white;
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .income-box {
+        background-color: #4CAF50;
+    }
+    .expense-box {
+        background-color: #F44336;
+    }
+    .debt-box {
+        background-color: #FF9800;
+    }
+    .balance-box {
+        background-color: #2196F3;
+    }
+    .box-title {
+        font-size: 1.2em;
+        margin-bottom: 10px;
+    }
+    .box-amount {
+        font-size: 1.8em;
+        font-weight: bold;
+    }
+    .table-striped tbody tr:nth-of-type(odd) {
+        background-color: rgba(0,0,0,.05);
+    }
+    .income-row {
+        background-color: rgba(0, 255, 0, 0.1) !important;
+    }
+    .expense-row {
+        background-color: rgba(255, 0, 0, 0.1) !important;
+    }
+    .table-hover tbody tr:hover {
+        background-color: rgba(0,0,0,.075);
+    }
+</style>
+<div class="mb-3">
+    <a href="{% url 'budget_manager:add_expense' %}" class="btn btn-primary">Add Expense</a>
+    <a href="{% url 'budget_manager:debt_list' %}" class="btn btn-info">View Debts</a>
 </div>
 
-<a href="{% url 'budget_manager:add_expense' %}" class="btn btn-primary mb-3">Add Expense</a>
-
 <h2>Completed Orders (Income)</h2>
-<table class="table table-striped">
+<table class="table table-striped table-hover">
     <thead>
         <tr>
             <th>Order ID</th>
@@ -22,17 +87,37 @@
     </thead>
     <tbody>
         {% for order in transactions.orders %}
-            <tr class="table-success">
-                <td>{{ order.id }}</td>
-                <td>{{ order.created_at|date:"Y-m-d H:i" }}</td>
-                <td>${{ order.total_price }}</td>
-            </tr>
+        <tr class="income-row">
+            <td>{{ order.id }}</td>
+            <td>{{ order.created_at|date:"Y-m-d H:i" }}</td>
+            <td>${{ order.total_price }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h2>Paid Debts (Income)</h2>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th>Debt Name</th>
+            <th>Date Paid</th>
+            <th>Amount</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for debt in transactions.paid_debts %}
+        <tr class="income-row">
+            <td>{{ debt.name }}</td>
+            <td>{{ debt.date_paid|date:"Y-m-d" }}</td>
+            <td>${{ debt.amount }}</td>
+        </tr>
         {% endfor %}
     </tbody>
 </table>
 
 <h2>Expenses</h2>
-<table class="table table-striped">
+<table class="table table-striped table-hover">
     <thead>
         <tr>
             <th>Date</th>
@@ -44,16 +129,16 @@
     </thead>
     <tbody>
         {% for expense in transactions.expenses %}
-            <tr>
-                <td>{{ expense.date }}</td>
-                <td>{{ expense.name }}</td>
-                <td>{{ expense.description }}</td>
-                <td>${{ expense.amount }}</td>
-                <td>
-                    <a href="{% url 'budget_manager:edit_expense' expense.id %}" class="btn btn-sm btn-primary">Edit</a>
-                    <a href="{% url 'budget_manager:delete_expense' expense.id %}" class="btn btn-sm btn-danger">Delete</a>
-                </td>
-            </tr>
+        <tr class="expense-row">
+            <td>{{ expense.date }}</td>
+            <td>{{ expense.name }}</td>
+            <td>{{ expense.description }}</td>
+            <td>${{ expense.amount }}</td>
+            <td>
+                <a href="{% url 'budget_manager:edit_expense' expense.id %}" class="btn btn-sm btn-primary">Edit</a>
+                <a href="{% url 'budget_manager:delete_expense' expense.id %}" class="btn btn-sm btn-danger">Delete</a>
+            </td>
+        </tr>
         {% endfor %}
     </tbody>
 </table>

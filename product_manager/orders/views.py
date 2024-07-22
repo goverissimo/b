@@ -8,6 +8,7 @@ from django.db import transaction
 from .models import Order
 from .forms import OrderForm, OrderItemFormSet
 from bot_manager import notify_management_bot
+from clients.models import Client
 
 class AdminRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
     def test_func(self):
@@ -146,9 +147,10 @@ def change_order_status(request, pk):
     
     return redirect('orders:order-detail', pk=pk)
 
-def passed_orders(request, telegram_id):
+def passed_orders(request, client_id):
     """
-    Display completed orders for a specific telegram user.
+    Display completed orders for a specific client.
     """
-    orders = Order.objects.filter(telegram_user_id=telegram_id, status='completed')
-    return render(request, 'orders/passed_orders.html', {'passed_orders': orders, 'telegram_id': telegram_id})
+    client = get_object_or_404(Client, id=client_id)
+    orders = Order.objects.filter(telegram_user_id=client.telegram_id, status='completed') if client.telegram_id else Order.objects.none()
+    return render(request, 'orders/passed_orders.html', {'passed_orders': orders, 'client': client})

@@ -1,27 +1,23 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
-
 {% block content %}
+
 <div class="container mt-5">
-  <div class="row justify-content-center">
-    <div class="col-md-6">
-      <div class="card">
-        <div class="card-header bg-primary text-white">
-          <h2 class="mb-0">Edit Client</h2>
-        </div>
-        <div class="card-body">
-            <form method="post" action="{% url 'clients:client-update' object.pk %}">
-            {% csrf_token %}
-            <div class="mb-3">
-              <label for="telegram_id" class="form-label">Telegram ID:</label>
-              <input type="text" class="form-control" id="telegram_id" value="{{ object.telegram_id }}" disabled>
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">Edit Client</h2>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {% crispy form %}
+                    </form>
+                </div>
             </div>
-            {% crispy form %}
-            
-          </form>
         </div>
-      </div>
     </div>
-  </div>
 </div>
+
 {% endblock %}
