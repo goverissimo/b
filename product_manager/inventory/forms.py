@@ -1,8 +1,10 @@
-# inventory/forms.py
 from django import forms
 from .models import Product, PriceHistory
 
 class ProductForm(forms.ModelForm):
+    """
+    Form for creating and updating Product instances.
+    """
     class Meta:
         model = Product
         fields = ['name', 'description', 'price', 'purchase_price', 'quantity_bought', 'quantity_in_stock', 'image']
@@ -11,6 +13,9 @@ class ProductForm(forms.ModelForm):
         }
 
     def save(self, commit=True):
+        """
+        Custom save method to handle price history creation.
+        """
         product = super().save(commit=False)
         if commit:
             product.save()

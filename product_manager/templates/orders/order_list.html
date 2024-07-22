@@ -4,7 +4,7 @@
 {% block title %}Orders{% endblock %}
 {% block content %}
 <h1 class="mb-4">Orders</h1>
-<a href="{% url 'order-create' %}" class="btn btn-primary mb-3">Create New Order</a>
+<a href="{% url 'orders:order-create' %}" class="btn btn-primary mb-3">Create New Order</a>
 <table class="table table-striped">
     <thead>
         <tr>
@@ -27,7 +27,7 @@
             <td>${{ order.total_price|floatformat:2 }}</td>
             <td>${{ order.profit|floatformat:2 }}</td>
             <td>
-                <a href="{% url 'order-detail' order.pk %}" class="btn btn-outline-primary btn-sm">View</a>
+                <a href="{% url 'orders:order-detail' order.pk %}" class="btn btn-outline-primary btn-sm">View</a>
             </td>
         </tr>
         {% endfor %}

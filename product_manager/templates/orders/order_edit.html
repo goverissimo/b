@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<h1>Edit Order #{{ order.id }}</h1>
+<form method="post">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <h2>Order Items</h2>
+    {{ items_formset.management_form }}
+    {% for form in items_formset %}
+        <div class="item-form">
+            {{ form|crispy }}
+        </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-primary">Save Changes</button>
+</form>
+{% endblock %}

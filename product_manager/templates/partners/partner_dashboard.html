@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Partner Dashboard</h1>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Your Profit Split</h5>
+                    <p class="card-text display-4">{{ partner.profit_split_percentage }}%</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Your Total Profit</h5>
+                    <p class="card-text display-4">${{ partner.total_profit|floatformat:2 }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h2 class="mb-3">Your Orders</h2>
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Order ID</th>
+                    <th>Date</th>
+                    <th>Total Price</th>
+                    <th>Order Profit</th>
+                    <th>Your Profit</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for partner_order in partner.orders.all %}
+                <tr>
+                    <td>{{ partner_order.order.id }}</td>
+                    <td>{{ partner_order.order.created_at|date:"Y-m-d H:i" }}</td>
+                    <td>${{ partner_order.order.total_price|floatformat:2 }}</td>
+                    <td class="order-profit">${{ partner_order.order.profit|floatformat:2 }}</td>
+                    <td class="partner-profit">${{ partner_order.partner_profit|floatformat:2 }}</td>
+                    <td>
+                        <select class="form-select order-status" data-order-id="{{ partner_order.order.id }}">
+                            {% for status, display in partner_order.order.STATUS_CHOICES %}
+                                <option value="{{ status }}" {% if status == partner_order.order.status %}selected{% endif %}>
+                                    {{ display }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td>
+                        <a href="{% url 'orders:order-detail' partner_order.order.id %}" class="btn btn-sm btn-primary">View</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <a href="{% url 'partners:create_order' %}" class="btn btn-success mt-3">Create New Order</a>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function() {
+    $('.order-status').change(function() {
+        var orderId = $(this).data('order-id');
+        var newStatus = $(this).val();
+        var row = $(this).closest('tr');
+        $.ajax({
+            url: '/partners/change-order-status/' + orderId + '/',
+            method: 'POST',
+            data: {
+                'status': newStatus,
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                if (response.status === 'success') {
+                    row.find('.order-profit').text('$' + parseFloat(response.order_profit).toFixed(2));
+                    row.find('.partner-profit').text('$' + parseFloat(response.partner_profit).toFixed(2));
+                    alert('Order status updated successfully.');
+                    // Refresh the page to update total profit
+                    location.reload();
+                } else {
+                    alert('Error updating order status.');
+                }
+            },
+            error: function() {
+                alert('Error updating order status.');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

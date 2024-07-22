@@ -1,54 +1,18 @@
-<!-- templates/orders/order_create.html -->
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
 
-{% block title %}Create New Order{% endblock %}
-
 {% block content %}
-<h1 class="mb-4">Create New Order</h1>
-<form method="post" id="orderForm">
+<h1>Create New Order</h1>
+<form method="post">
     {% csrf_token %}
-    {{ form.telegram_user_id|as_crispy_field }}
-    {{ form.status|as_crispy_field }}
-    {{ form.meeting_date|as_crispy_field }}
-    {{ form.meeting_time|as_crispy_field }}
-    <h2 class="mt-4">Order Items</h2>
+    {{ form|crispy }}
+    <h2>Order Items</h2>
     {{ items_formset.management_form }}
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Product</th>
-                <th>Quantity</th>
-                <th>Price</th>
-                <th>Delete</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for form in items_formset %}
-            <tr>
-                <td>{{ form.product|as_crispy_field }}</td>
-                <td>{{ form.quantity|as_crispy_field }}</td>
-                <td>{{ form.price|as_crispy_field }}</td>
-                <td>{{ form.DELETE|as_crispy_field }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    {% for form in items_formset %}
+        <div class="item-form">
+            {{ form|crispy }}
+        </div>
+    {% endfor %}
     <button type="submit" class="btn btn-primary">Create Order</button>
-    <a href="{% url 'order-list' %}" class="btn btn-secondary">Cancel</a>
 </form>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const dateField = document.getElementById('id_meeting_date');
-        const timeField = document.getElementById('id_meeting_time');
-        const form = document.getElementById('orderForm');
-
-        dateField.addEventListener('change', function() {
-            form.submit();
-        });
-    });
-</script>
 {% endblock %}

@@ -1,3 +1,7 @@
 from django.contrib import admin
+from .models import AnalyticsConfig
 
-# Register your models here.
+@admin.register(AnalyticsConfig)
+class AnalyticsConfigAdmin(admin.ModelAdmin):
+    list_display = ('key', 'value')
+    search_fields = ('key',)

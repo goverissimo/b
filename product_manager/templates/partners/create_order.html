@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<h1>Create New Order</h1>
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+    {{ order_form|crispy }}
+
+    <h2>Order Items</h2>
+    {{ formset.management_form }}
+    {% for form in formset %}
+        <div class="item-form">
+            {{ form|crispy }}
+        </div>
+    {% endfor %}
+
+    <button type="submit" class="btn btn-primary">Create Order</button>
+</form>
+
+<button id="add-item" class="btn btn-secondary mt-2">Add Item</button>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $('#add-item').click(function() {
+            var form_idx = $('#id_items-TOTAL_FORMS').val();
+            $('#id_items-TOTAL_FORMS').val(parseInt(form_idx) + 1);
+            var empty_form = $('#id_items-__prefix__-product').closest('.item-form').clone();
+            empty_form.find(':input').each(function() {
+                var name = $(this).attr('name').replace('__prefix__', form_idx);
+                var id = 'id_' + name;
+                $(this).attr({'name': name, 'id': id}).val('').removeAttr('checked');
+            });
+            empty_form.insertBefore($(this));
+        });
+    });
+</script>
+{% endblock %}

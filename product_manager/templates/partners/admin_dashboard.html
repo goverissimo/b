@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Partners Dashboard (Admin)</h1>
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col">Partner</th>
+                    <th scope="col">Profit Split %</th>
+                    <th scope="col">Total Profit</th>
+                    <th scope="col">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for partner in partners %}
+                <tr>
+                    <td>{{ partner.user.username }}</td>
+                    <td>{{ partner.profit_split_percentage }}%</td>
+                    <td>${{ partner.total_profit }}</td>
+                    <td>
+                        <form action="{% url 'partners:profit_split' partner.id %}" method="post" class="d-flex">
+                            {% csrf_token %}
+                            <input type="number" name="percentage" class="form-control me-2" step="0.01" min="0" max="100" required>
+                            <button type="submit" class="btn btn-primary">Set Profit Split</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

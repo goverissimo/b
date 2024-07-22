@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Budget Overview</h1>
+
+<div class="summary">
+    <p>Total Income: ${{ total_income }}</p>
+    <p>Total Expenses: ${{ total_expenses }}</p>
+    <p>Balance: ${{ balance }}</p>
+</div>
+
+<a href="{% url 'budget_manager:add_expense' %}" class="btn btn-primary mb-3">Add Expense</a>
+
+<h2>Completed Orders (Income)</h2>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Order ID</th>
+            <th>Date</th>
+            <th>Total Price</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for order in transactions.orders %}
+            <tr class="table-success">
+                <td>{{ order.id }}</td>
+                <td>{{ order.created_at|date:"Y-m-d H:i" }}</td>
+                <td>${{ order.total_price }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h2>Expenses</h2>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Amount</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for expense in transactions.expenses %}
+            <tr>
+                <td>{{ expense.date }}</td>
+                <td>{{ expense.name }}</td>
+                <td>{{ expense.description }}</td>
+                <td>${{ expense.amount }}</td>
+                <td>
+                    <a href="{% url 'budget_manager:edit_expense' expense.id %}" class="btn btn-sm btn-primary">Edit</a>
+                    <a href="{% url 'budget_manager:delete_expense' expense.id %}" class="btn btn-sm btn-danger">Delete</a>
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

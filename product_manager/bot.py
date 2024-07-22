@@ -10,7 +10,7 @@ sys.path.append(project_root)
 # Set up Django environment
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "product_manager.settings")
 django.setup()
-
+from django.db import transaction
 import telebot
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 from datetime import datetime, timedelta
@@ -246,50 +246,38 @@ def callback_book_checkout(call):
     order = Order.objects.filter(telegram_user_id=user_id, status='pending_appointment').first()
     
     if order:
-        # Check availability again before finalizing
-        unavailable_items = []
-        for item in order.items.all():
-            if item.quantity > item.product.quantity_in_stock:
-                unavailable_items.append(item.product.name)
-        
-        if unavailable_items:
-            message = "Sorry, the following items are no longer available in the requested quantity:\n"
-            message += "\n".join(unavailable_items)
-            message += "\nYour order could not be completed. Please try again."
-            bot.answer_callback_query(call.id, "Order could not be completed.")
-            bot.send_message(call.message.chat.id, message)
-            order.status = 'cart'  # Reset to cart status
+        try:
+            with transaction.atomic():
+                # Check availability again before finalizing
+                for item in order.items.all():
+                    if item.quantity > item.product.quantity_in_stock:
+                        raise ValueError(f"Not enough stock for product: {item.product.name}")
+
+                # Update order status and meeting time
+                order.status = 'pending'
+                order.meeting_time = meeting_time
+                order.save()
+
+                bot.answer_callback_query(call.id, "Appointment booked successfully!")
+                confirmation_text = "Your appointment has been booked and your order is confirmed!\n\n"
+                confirmation_text += f"Date and Time: {meeting_time.strftime('%Y-%m-%d %H:%M')}\n\n"
+                confirmation_text += "Order details:\n"
+                for item in order.items.all():
+                    confirmation_text += f"{item.product.name} x{item.quantity} - ${item.selling_price * item.quantity:.2f}\n"
+                confirmation_text += f"\nTotal: ${order.total_price:.2f}"
+                
+                bot.send_message(call.message.chat.id, confirmation_text)
+                
+                # Notify the management bot
+                notify_management_bot(order.id, order.status)
+        except ValueError as e:
+            bot.answer_callback_query(call.id, str(e))
+            order.status = 'cart'
             order.save()
-            return
-        
-        # Update order status and meeting time
-        order.status = 'pending'  # or 'pending', depending on your workflow
-        order.meeting_time = meeting_time
-        order.save()
-        
-        # Update product quantities
-        for item in order.items.all():
-            product = item.product
-            product.quantity_in_stock -= item.quantity
-            product.quantity_sold += item.quantity
-            product.save()
-        
-        bot.answer_callback_query(call.id, "Appointment booked successfully!")
-        confirmation_text = "Your appointment has been booked and your order is confirmed!\n\n"
-        confirmation_text += f"Date and Time: {meeting_time.strftime('%Y-%m-%d %H:%M')}\n\n"
-        confirmation_text += "Order details:\n"
-        for item in order.items.all():
-            confirmation_text += f"{item.product.name} x{item.quantity} - ${item.price * item.quantity:.2f}\n"
-        confirmation_text += f"\nTotal: ${order.total_price:.2f}"
-        
-        bot.send_message(call.message.chat.id, confirmation_text)
-        
-        # Notify the management bot
-        notify_management_bot(order.id, order.status)
     else:
         bot.answer_callback_query(call.id, "No pending order found.")
         bot.send_message(call.message.chat.id, "Sorry, we couldn't find your order. Please try checking out again.")
-        
+
 @bot.callback_query_handler(func=lambda call: call.data.startswith('add_to_cart_'))
 def callback_add_to_cart(call):
     product_id = int(call.data.split('_')[3])
@@ -303,7 +291,6 @@ from decimal import Decimal
 from django.db import IntegrityError
 
 # bot.py
-
 def process_quantity_step(message, product_id):
     try:
         quantity = int(message.text)
@@ -318,26 +305,26 @@ def process_quantity_step(message, product_id):
         
         user_id = message.from_user.id
         
-        cart_order, created = Order.objects.get_or_create(
-            telegram_user_id=user_id,
-            status='cart',
-            defaults={
-                'total_price': 0,
-                'profit': 0
-            }
-        )
+        with transaction.atomic():
+            cart_order, created = Order.objects.get_or_create(
+                telegram_user_id=user_id,
+                status='cart',
+                defaults={
+                    'total_price': 0,
+                    'profit': 0
+                }
+            )
 
-        cart_item, item_created = OrderItem.objects.get_or_create(
-            order=cart_order,
-            product=product,
-            defaults={'quantity': 0, 'price': product.price}
-        )
-        
-        cart_item.quantity += quantity
-        cart_item.save()
-        
-        cart_order.total_price += Decimal(product.price) * quantity
-        cart_order.save()
+            cart_item, item_created = OrderItem.objects.get_or_create(
+                order=cart_order,
+                product=product,
+                defaults={'quantity': 0, 'selling_price': product.price}
+            )
+            
+            cart_item.quantity += quantity
+            cart_item.save()
+            
+            cart_order.save()  # This will recalculate total_price and profit
         
         bot.send_message(message.chat.id, f"{quantity} x {product.name} added to your cart.")
         bot.send_message(message.chat.id, "You can continue shopping or click 'Cart' to view your cart and proceed to book an appointment.", reply_markup=create_main_menu())
@@ -474,7 +461,7 @@ def view_cart(message):
         text = "Your Cart:\n\n"
         total = 0
         for item in cart_items:
-            item_total = item.price * item.quantity
+            item_total = item.selling_price * item.quantity
             total += item_total
             text += f"{item.product.name} x{item.quantity} - ${item_total:.2f}\n"
         text += f"\nTotal: ${total:.2f}"
