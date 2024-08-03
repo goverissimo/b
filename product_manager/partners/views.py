@@ -8,11 +8,11 @@ from django.urls import reverse
 from django.http import HttpResponse, JsonResponse
 from .models import Partner, PartnerOrder
 from orders.models import Order, OrderItem
-from orders.forms import OrderForm, OrderItemFormSet
+from orders.forms import OrderForm, OrderItemForm
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
-
+OrderItemFormSet = inlineformset_factory(Order, OrderItem, form=OrderItemForm, extra=1, can_delete=True)
 # Helper function to check if a user is a partner
 def is_partner(user):
     return user.is_partner
@@ -55,8 +55,7 @@ def create_order(request):
     Create a new order for a partner.
     """
     partner = get_object_or_404(Partner, user=request.user)
-    OrderItemFormSet = inlineformset_factory(Order, OrderItem, form=OrderItemFormSet, extra=1, can_delete=True)
-
+    
     if request.method == 'POST':
         order_form = OrderForm(request.POST)
         formset = OrderItemFormSet(request.POST, request.FILES)
@@ -95,7 +94,7 @@ def create_order(request):
         'formset': formset,
         'partner': partner,
     })
-
+    
 @login_required
 @user_passes_test(lambda u: u.is_partner)
 def change_order_status(request, order_id):
